@@ -5,12 +5,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+  const { pathname } = req.nextUrl;
 
-  if (!req.nextUrl.pathname.startsWith("/admin")) {
-    return res;
+  // Solo proteger /admin
+  if (!pathname.startsWith("/admin")) {
+    return NextResponse.next();
   }
 
+  // Cookies de sesión de Supabase
   const hasSession =
     req.cookies.get("sb-access-token") ||
     req.cookies.get("supabase-auth-token");
@@ -19,7 +21,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {

@@ -7,16 +7,15 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
+  if (!req.nextUrl.pathname.startsWith("/admin")) {
+    return res;
+  }
 
-  if (!isAdminRoute) return res;
-
-  // Cookie que usa Supabase Auth
-  const supabaseSession =
+  const hasSession =
     req.cookies.get("sb-access-token") ||
     req.cookies.get("supabase-auth-token");
 
-  if (!supabaseSession) {
+  if (!hasSession) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

@@ -1,35 +1,28 @@
 // middleware.ts
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+export const runtime = "edge";
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-  const supabase = createMiddlewareClient({ req, res })
+export function middleware(req: NextRequest) {
+  const res = NextResponse.next();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
 
-  // Protege todo lo que empiece con /admin
-  if (req.nextUrl.pathname.startsWith('/admin')) {
-    // Si no está logueado → a login
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
+  if (!isAdminRoute) return res;
 
-    // Solo permite al email exacto del admin
-    const adminEmail = 'connekflycontadm@gmail.com'
+  // Cookie que usa Supabase Auth
+  const supabaseSession =
+    req.cookies.get("sb-access-token") ||
+    req.cookies.get("supabase-auth-token");
 
-    if (user.email !== adminEmail) {
-      // Si no es el admin → redirige a home
-      return NextResponse.redirect(new URL('/', req.url))
-    }
+  if (!supabaseSession) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  return res
+  return res;
 }
 
-// Config: solo aplica en rutas /admin y subrutas
 export const config = {
-  matcher: ['/admin/:path*'],
-}
+  matcher: ["/admin/:path*"],
+};

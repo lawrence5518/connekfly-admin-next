@@ -27,19 +27,41 @@ export default async function AdminDashboard() {
     );
 
   // ─────────────────────────────
-  // LIA ALERTAS
+  // USO POR MÓDULO (B2)
+  // ─────────────────────────────
+
+  const { data: usoModulos } = await supabase
+    .from("lia_eventos")
+    .select("module")
+    .gte(
+      "created_at",
+      new Date().toISOString().split("T")[0]
+    );
+
+  const modulos = {
+    chat: 0,
+    connektik: 0,
+    crm: 0,
+    wall: 0,
+    marketplace: 0,
+  };
+
+  usoModulos?.forEach(e => {
+    const m = e.module?.toLowerCase();
+    if (m && m in modulos) {
+      modulos[m as keyof typeof modulos]++;
+    }
+  });
+
+  // ─────────────────────────────
+  // LIA ALERTAS (B3 REAL)
   // ─────────────────────────────
 
   const { data: alertas } = await supabase
     .from("crm_alerts_readonly")
-    .select("score");
-
-  const alertasAlta =
-    alertas?.filter(a => a.score >= 80).length ?? 0;
-  const alertasMedia =
-    alertas?.filter(a => a.score >= 50 && a.score < 80).length ?? 0;
-  const alertasInfo =
-    alertas?.filter(a => a.score < 50).length ?? 0;
+    .select("module, score, alert_icon, created_at")
+    .order("created_at", { ascending: false })
+    .limit(5);
 
   return (
     <main style={{ padding: 32, fontFamily: "system-ui" }}>
@@ -51,40 +73,53 @@ export default async function AdminDashboard() {
         Estado general del sistema
       </p>
 
+      {/* USUARIOS */}
       <section style={{ marginBottom: 32 }}>
         <h2>👥 Usuarios</h2>
         <ul>
           <li><strong>Activos ahora:</strong> {activosAhora ?? 0}</li>
           <li><strong>Activos hoy:</strong> {activosHoy ?? 0}</li>
-          <li><strong>Tendencia 24h:</strong> — calculando</li>
         </ul>
       </section>
 
+      {/* USO POR MÓDULO */}
       <section style={{ marginBottom: 32 }}>
         <h2>📊 Uso por módulo (hoy)</h2>
         <ol>
-          <li>Chat — pendiente</li>
-          <li>ConnekTik — pendiente</li>
-          <li>CRM — pendiente</li>
-          <li>Muro — pendiente</li>
-          <li>Marketplace — pendiente</li>
+          <li>Chat — {modulos.chat}</li>
+          <li>ConnekTik — {modulos.connektik}</li>
+          <li>CRM — {modulos.crm}</li>
+          <li>Muro — {modulos.wall}</li>
+          <li>Marketplace — {modulos.marketplace}</li>
         </ol>
       </section>
 
+      {/* LIA */}
       <section style={{ marginBottom: 32 }}>
-        <h2>🧠 LIA — Observaciones</h2>
-        <ul>
-          <li>🔥 Alertas altas: {alertasAlta}</li>
-          <li>⚠️ Alertas medias: {alertasMedia}</li>
-          <li>ℹ️ Informativas: {alertasInfo}</li>
-        </ul>
+        <h2>🧠 LIA — Alertas recientes</h2>
+
+        {alertas && alertas.length > 0 ? (
+          <ul>
+            {alertas.map((a, i) => (
+              <li key={i}>
+                {a.alert_icon}{" "}
+                <strong>{a.module}</strong>{" "}
+                — score {a.score}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p style={{ color: "#999" }}>
+            Sin alertas recientes
+          </p>
+        )}
       </section>
 
+      {/* ATENCIÓN */}
       <section>
         <h2>🧯 Atención del creador</h2>
         <ul>
-          <li>🔧 Ajustes sugeridos por LIA (próximo)</li>
-          <li>💤 Módulos con bajo uso (próximo)</li>
+          <li>🔧 Ajustes sugeridos por LIA (siguiente paso)</li>
         </ul>
       </section>
     </main>

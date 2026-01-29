@@ -1,4 +1,46 @@
-export default function AdminDashboard() {
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export default async function AdminDashboard() {
+  // ─────────────────────────────
+  // USUARIOS
+  // ─────────────────────────────
+
+  const { count: activosAhora } = await supabase
+    .from("lia_eventos")
+    .select("user_id", { count: "exact", head: true })
+    .gte(
+      "created_at",
+      new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    );
+
+  const { count: activosHoy } = await supabase
+    .from("lia_eventos")
+    .select("user_id", { count: "exact", head: true })
+    .gte(
+      "created_at",
+      new Date().toISOString().split("T")[0]
+    );
+
+  // ─────────────────────────────
+  // LIA ALERTAS
+  // ─────────────────────────────
+
+  const { data: alertas } = await supabase
+    .from("crm_alerts_readonly")
+    .select("score");
+
+  const alertasAlta =
+    alertas?.filter(a => a.score >= 80).length ?? 0;
+  const alertasMedia =
+    alertas?.filter(a => a.score >= 50 && a.score < 80).length ?? 0;
+  const alertasInfo =
+    alertas?.filter(a => a.score < 50).length ?? 0;
+
   return (
     <main style={{ padding: 32, fontFamily: "system-ui" }}>
       <h1 style={{ fontSize: 28, marginBottom: 8 }}>
@@ -13,9 +55,18 @@ export default function AdminDashboard() {
       <section style={{ marginBottom: 32 }}>
         <h2>👥 Usuarios</h2>
         <ul>
-          <li><strong>Activos ahora:</strong> 127</li>
-          <li><strong>Activos hoy:</strong> 1,842</li>
-          <li><strong>Tendencia 24h:</strong> ▲ +6.3%</li>
+          <li>
+            <strong>Activos ahora:</strong>{" "}
+            {activosAhora ?? 0}
+          </li>
+          <li>
+            <strong>Activos hoy:</strong>{" "}
+            {activosHoy ?? 0}
+          </li>
+          <li>
+            <strong>Tendencia 24h:</strong>{" "}
+            — calculando
+          </li>
         </ul>
       </section>
 
@@ -23,11 +74,11 @@ export default function AdminDashboard() {
       <section style={{ marginBottom: 32 }}>
         <h2>📊 Uso por módulo (hoy)</h2>
         <ol>
-          <li>Chat — 41%</li>
-          <li>ConnekTik — 27%</li>
-          <li>CRM — 18%</li>
-          <li>Muro — 9%</li>
-          <li>Marketplace — 5%</li>
+          <li>Chat — pendiente</li>
+          <li>ConnekTik — pendiente</li>
+          <li>CRM — pendiente</li>
+          <li>Muro — pendiente</li>
+          <li>Marketplace — pendiente</li>
         </ol>
       </section>
 
@@ -35,9 +86,9 @@ export default function AdminDashboard() {
       <section style={{ marginBottom: 32 }}>
         <h2>🧠 LIA — Observaciones</h2>
         <ul>
-          <li>🔥 Muchos usuarios free alcanzando límite de CRM</li>
-          <li>⚠️ Crecimiento inusual en ConnekTik hoy</li>
-          <li>ℹ️ Marketplace estable</li>
+          <li>🔥 Alertas altas: {alertasAlta}</li>
+          <li>⚠️ Alertas medias: {alertasMedia}</li>
+          <li>ℹ️ Informativas: {alertasInfo}</li>
         </ul>
       </section>
 
@@ -45,8 +96,8 @@ export default function AdminDashboard() {
       <section>
         <h2>🧯 Atención del creador</h2>
         <ul>
-          <li>🔧 Ajuste recomendado en límites CRM</li>
-          <li>💤 Módulo Ubicación con bajo uso (7 días)</li>
+          <li>🔧 Ajustes sugeridos por LIA (próximo)</li>
+          <li>💤 Módulos con bajo uso (próximo)</li>
         </ul>
       </section>
     </main>

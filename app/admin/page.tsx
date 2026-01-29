@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default async function AdminDashboard() {
@@ -51,26 +51,15 @@ export default async function AdminDashboard() {
         Estado general del sistema
       </p>
 
-      {/* USUARIOS */}
       <section style={{ marginBottom: 32 }}>
         <h2>👥 Usuarios</h2>
         <ul>
-          <li>
-            <strong>Activos ahora:</strong>{" "}
-            {activosAhora ?? 0}
-          </li>
-          <li>
-            <strong>Activos hoy:</strong>{" "}
-            {activosHoy ?? 0}
-          </li>
-          <li>
-            <strong>Tendencia 24h:</strong>{" "}
-            — calculando
-          </li>
+          <li><strong>Activos ahora:</strong> {activosAhora ?? 0}</li>
+          <li><strong>Activos hoy:</strong> {activosHoy ?? 0}</li>
+          <li><strong>Tendencia 24h:</strong> — calculando</li>
         </ul>
       </section>
 
-      {/* USO POR MÓDULO */}
       <section style={{ marginBottom: 32 }}>
         <h2>📊 Uso por módulo (hoy)</h2>
         <ol>
@@ -82,7 +71,6 @@ export default async function AdminDashboard() {
         </ol>
       </section>
 
-      {/* LIA */}
       <section style={{ marginBottom: 32 }}>
         <h2>🧠 LIA — Observaciones</h2>
         <ul>
@@ -92,7 +80,6 @@ export default async function AdminDashboard() {
         </ul>
       </section>
 
-      {/* ATENCIÓN */}
       <section>
         <h2>🧯 Atención del creador</h2>
         <ul>
